@@ -132,7 +132,7 @@ void print_datetime(boolean show) {
 }
 
 
-/* ******************* MQTTCALLBACK  ********************** */
+/* ******************* MQTT CALLBACK  ********************** */
 void mqttCallback(char* topic, byte* payload, unsigned int length) {
 
     char buff[length];
