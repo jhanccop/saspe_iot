@@ -31,12 +31,16 @@ const char gprsPass[] = "";
 const char simPIN[]   = "";
 #define MODEM_TX        16 // 16
 #define MODEM_RX        17 // 17
-#define reset_modem           5
+#define reset_modem     5
+
+
+#define pin_buzzer    27
 
 /* Set serial for AT commands (to SIM800 module) */
 #define SerialAT Serial1 // Serial1
 
-/* Configure TinyGSM library */
+
+/* Configure TinyGSM library  */
 #define TINY_GSM_MODEM_SIM800      // Modem is SIM800
 
 #define GSM_AUTOBAUD_MIN 9600
@@ -49,10 +53,16 @@ const char simPIN[]   = "";
 #define DUMP_AT_COMMANDS
 TinyGsm modem(SerialAT);
 
-TinyGsmClient client(modem);
+//TinyGsmClient client(modem);
+
 
 /* ====================== MQTT CONFIG ======================== */
 
+#include <WiFi.h>
+const char* ssid = "jhanccop-wifi";
+const char* password = "20080076";
+
+WiFiClient client;
 #include <PubSubClient.h>
 
 PubSubClient mqtt(client);
@@ -122,12 +132,13 @@ void print_datetime(boolean show) {
     String datetime = year + "/" + String(now.month()) + "/" + String(now.day()) + " " + String(now.hour()) + ":" + String(now.minute()) + ":" + String(now.second());
 
     if(show){
-        mydisp.setPrintPos(14, 0, _TEXT_);
+        mydisp.setPrintPos(13, 0, _TEXT_);
         
     }
     else{
         mydisp.setPrintPos(6, 2, _TEXT_);
     }
+    
     mydisp.print(datetime);
 }
 
@@ -161,6 +172,10 @@ void mqttCallback(char* topic, byte* payload, unsigned int length) {
     }else{
         print_text(message, 6, 4);
         print_datetime(false);
+        //print_text(".956", 23, 2);
+        print_text("active", 6, 6);
+        ledcWriteTone(0, 2000);
+        time_now = millis();
     }
 
 }
@@ -171,6 +186,7 @@ void reconnect() {
   while (!mqtt.connected()) {
     Serial.print("Attempting MQTT connection...");
     print_text("MQTT connection...       ", 0, 9);
+    mqtt.publish(topicInit_pub,"reconnect");
     // Attempt to connect
 
     if (mqtt.connect(mqtt_user)) {
@@ -218,6 +234,26 @@ void lcd_prepare(void) {
 
 }
 
+/* ************************* SETUP WIFI ************************** */
+void setup_wifi() {
+  delay(10);
+  // We start by connecting to a WiFi network
+  Serial.println();
+  Serial.print("Connecting to ");
+  Serial.println(ssid);
+
+  WiFi.begin(ssid, password);
+
+  while (WiFi.status() != WL_CONNECTED) {
+    delay(500);
+    Serial.print(".");
+  }
+
+  Serial.println("");
+  Serial.println("WiFi connected");
+  Serial.println("IP address: ");
+  Serial.println(WiFi.localIP());
+}
 
 /* ************************* SETUP GRPS ************************** */
 boolean setup_grps() {
@@ -292,10 +328,20 @@ void setup(){
     delay(500);
     digitalWrite(reset_modem, HIGH);
 
+    ledcSetup(2000, 0, 8);
+    ledcAttachPin(27, 0);
+
+    ledcWriteTone(0, 2000);
+
     mydisp.begin();
     delay(3000);
+
+    ledcWriteTone(0, 0);
+
     //lcd_prepare();
-    setup_grps();
+    //setup_grps();
+    setup_wifi();
+
     lcd_prepare();
     if (! rtc.begin()) {
         abort();
@@ -325,7 +371,7 @@ void loop()
     
     mqtt.loop();
 
-    if (millis() > now + 5000)
+    if (millis() > now + 20000)
     {
 
         print_datetime(true);
@@ -336,5 +382,12 @@ void loop()
         mqtt.publish(topicData_pub, data);
 
         now = millis();
-    }
+        
+    }else if(millis() > time_now + 2000){
+        ledcWriteTone(0, 0);
+        time_now = millis();
+    } 
+
+
+    
 }
