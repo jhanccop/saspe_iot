@@ -46,8 +46,8 @@ const int   daylightOffset_sec = 3600;
 //const char* ssid = "Hora De Estudiar-2.4GHz";
 //const char* password = "colosenses3:20";
 
-String ssid = "Hora De Estudiar-2.4GHz";
-String password = "colosenses3:20";
+String ssid = "**ssid**";
+String password = "**pass**";
 
 WiFiClient client;
 #include <PubSubClient.h>
@@ -56,11 +56,11 @@ PubSubClient mqtt(client);
 
 /* settings MQTT */
 
-const char *broker = "190.187.237.140";
-const int mqtt_port = 5007;
-const char *mqtt_id = "saspe13";
-const char *mqtt_user = "saspe";
-const char *mqtt_pass = "sasperuclient";
+const char *broker = "**ip broker**";
+const int mqtt_port = **;
+const char *mqtt_id = "**";
+const char *mqtt_user = "**";
+const char *mqtt_pass = "**";
 
 //const char* topicData_pub = "sasp3/sirenData";
 //const char* topicInit_pub = "sasp3/init";
